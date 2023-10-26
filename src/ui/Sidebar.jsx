@@ -20,7 +20,7 @@ const Sidebar = () => {
     <StyleSidebar>
      <Logo/>
      <MainNav/>
-     {/* <Uploader/> */}
+     {/* <Uploader/> */}  
     </StyleSidebar>
   )
 }
