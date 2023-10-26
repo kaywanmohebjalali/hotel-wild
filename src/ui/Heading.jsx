@@ -7,8 +7,9 @@ const Heading=styled.h1`
     font-size: 2rem;
     line-height: 3rem;
     font-weight: 400;
-    color: #000;
+    color: var(--color-grey-600);
     ${textAlign};
+    padding: ${prop=>prop?.p};
 
 
     

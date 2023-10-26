@@ -161,7 +161,7 @@ const DurationChart = ({confirmedStay}) => {
           <Pie data={data} 
           nameKey='duration'
           dataKey='value'
-          innerRadius={20}
+          innerRadius={80}
           outerRadius={110} 
           cx='50%'
           cy='50%'
