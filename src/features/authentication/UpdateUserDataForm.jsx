@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
@@ -8,32 +8,41 @@ import Input from "../../ui/Input";
 
 import { useGetUser } from "./useGetUser";
 import { useUpdateUser } from "./useUpdateUser";
+import UploadImage from "../../ui/UploadImage";
 
 function UpdateUserDataForm() {
+  const inputRef= useRef(null)
   // We don't need the loading state, and can immediately use the user data, because we know that it has already been loaded at this point
   const {
     user: {
       email,
-      user_metadata: { fullName: currentFullName },
+      user_metadata: { fullName: currentFullName, avatar: previousAvatar },
     },
   } = useGetUser();
-  const {updateUser,isUpdateUser}=useUpdateUser()
+  
+  const { updateUser, isUpdateUser } = useUpdateUser();
   const [fullName, setFullName] = useState(currentFullName);
-  const [avatar, setAvatar] = useState(null);
 
   function handleSubmit(e) {
     e.preventDefault();
-    if(fullName)updateUser({fullName,avatar},{
-      onSuccess:()=>{
-        setAvatar(null)
-        e.target.reset()
+    if (fullName){
+       let avatar = inputRef?.current.files[0]
+       console.log(avatar);
+      updateUser(
+        { fullName, avatar, previousAvatar },
+        {
+          onSuccess: () => {
+            inputRef.current.value=''
+            e.target.reset();
+          },
+        }
+        );
       }
-    })
   }
-  
-  function handleCancel(){
-   setFullName(currentFullName)
-   setAvatar(null)
+
+  function handleCancel() {
+    setFullName(currentFullName);
+    inputRef.current.value=''
   }
   return (
     <Form onSubmit={handleSubmit}>
@@ -50,15 +59,37 @@ function UpdateUserDataForm() {
         />
       </FormRow>
       <FormRow label="Avatar image">
-        <FileInput
-          id="avatar"
-          accept="image/*"
-          onChange={(e) => setAvatar(e.target.files[0])}
-          disabled={isUpdateUser}
-        />
+    
+        <UploadImage inputRef={inputRef} width='100%'  size='small'>
+          <UploadImage.Image  
+          src={previousAvatar}
+          icon={<img src="/icon-user-1.png" />}
+           />
+
+          <UploadImage.Drop
+            iconClick={<img src="/icon-click-1.png" alt="" />}
+            iconDrop={
+              <img className="drop" src="/icon-upload-drop.png" alt="" />
+            }
+          >
+            <FileInput
+              disabled={isUpdateUser}
+              id="image"
+              accept="image/*"
+              ref={inputRef}
+              
+
+            />
+          </UploadImage.Drop>
+        </UploadImage>
       </FormRow>
       <FormRow>
-        <Button onClick={handleCancel} type="reset" variation="secondary" disabled={isUpdateUser}>
+        <Button
+          onClick={handleCancel}
+          type="reset"
+          variation="secondary"
+          disabled={isUpdateUser}
+        >
           Cancel
         </Button>
         <Button disabled={isUpdateUser}>Update account</Button>

@@ -4,13 +4,15 @@ import { styled } from "styled-components";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
-import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
-
+import FileInput from "../../ui/FileInput";
 import { createOrEditCabin } from "../../services/apiCabins";
 import { useFetchData } from "../../hooks/useFetchData";
 import SpinnerMini from "../../ui/SpinnerMini";
+import { useEffect, useRef } from "react";
+import UploadImage from "../../ui/UploadImage";
+import { useState } from "react";
 
 const StyledFormRow = styled.div`
   display: grid;
@@ -39,16 +41,11 @@ const StyledFormRow = styled.div`
   }
 `;
 
-const Label = styled.label`
-  font-weight: 500;
-`;
-
-
-function CreateCabinForm(prop={}) {
-
-  const {onCloseModal,id:editId, ...editValues}=prop
-
-  const isEditCabin=Boolean(editId)
+function CreateCabinForm(prop = {}) {
+  const inputRef = useRef(null);
+  const[, setUpdateImage]=useState(false)
+  const { onCloseModal, id: editId, ...editValues } = prop;
+  const isEditCabin = Boolean(editId);
   const {
     register,
     handleSubmit,
@@ -56,53 +53,69 @@ function CreateCabinForm(prop={}) {
     getValues,
     formState: { errors },
   } = useForm({
-    defaultValues:isEditCabin?editValues:{}
+    defaultValues: isEditCabin ? editValues : {},
   });
 
+  //  Create
 
+  const { isLoading: isLoadingCreate, mutate: mutateCreate } = useFetchData(
+    createOrEditCabin,
+    "new cabin  Successfully created",
+    "cabin"
+  );
 
-    //  Create
-
-    const { isLoading:isLoadingCreate, mutate:mutateCreate }=  useFetchData(createOrEditCabin,
-      "new cabin  Successfully created",'cabin')
-
-    
-  // Edit 
-  const { isLoading:isLoadingEdit, mutate:mutateEdit } =useFetchData(({newCabinData,id})=> createOrEditCabin(newCabinData,id),
-  "cabin  Successfully update",'cabin')
-
-
-
+  // Edit
+  const { isLoading: isLoadingEdit, mutate: mutateEdit } = useFetchData(
+    ({ newCabinData, id }) => createOrEditCabin(newCabinData, id, editValues?.image),
+    "cabin  Successfully update",
+    "cabin"
+  );
 
   function onSubmit(data) {
-   
-    if(isEditCabin)mutateEdit({newCabinData:{...data, image:data.image},id:editId},{
-      onSuccess:()=>{
-       reset()
-       onCloseModal?.()
-      }
-     })
-    else mutateCreate({...data,image:data.image},{
-     onSuccess:()=>{
-      reset()
-      onCloseModal?.()
-     }
-    });
+    let image = inputRef.current.files;
+  
+    if (isEditCabin)
+      mutateEdit(
+        { newCabinData: { ...data, image: image }, id: editId },
+        {
+          onSuccess: () => {
+            reset();
+            onCloseModal?.();
+          },
+        }
+      );
+    else
+      mutateCreate(
+        { ...data, image: image },
+        {
+          onSuccess: () => {
+            reset();
+            onCloseModal?.();
+          },
+        }
+      );
+      
+
+  }
+
+  function onError(errors) {
+    console.log(errors);
   }
 
 
-  function onError(errors) {console.log(errors);}
+  useEffect(()=>{
+ 
+  },[])
 
-
-
-  const isWorking =isLoadingCreate || isLoadingEdit
+  const isWorking = isLoadingCreate || isLoadingEdit;
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)}
-    type={onCloseModal?'modal':'regular'}
+    <Form
+      onSubmit={handleSubmit(onSubmit, onError)}
+      type={onCloseModal ? "modal" : "regular"}
     >
       <FormRow label="Cabin name" error={errors?.name?.message}>
         <Input
-        disabled={isWorking}
+          disabled={isWorking}
           type="text"
           id="name"
           {...register("name", {
@@ -113,7 +126,7 @@ function CreateCabinForm(prop={}) {
 
       <FormRow label="Maximum capacity" error={errors?.maxCapacity?.message}>
         <Input
-         disabled={isWorking}
+          disabled={isWorking}
           type="number"
           id="maxCapacity"
           {...register("maxCapacity", {
@@ -128,7 +141,7 @@ function CreateCabinForm(prop={}) {
 
       <FormRow label="Regular price" error={errors?.regularPrice?.message}>
         <Input
-         disabled={isWorking}
+          disabled={isWorking}
           type="number"
           id="regularPrice"
           {...register("regularPrice", {
@@ -139,14 +152,11 @@ function CreateCabinForm(prop={}) {
             },
           })}
         />
-    
       </FormRow>
 
       <FormRow label="Discount" error={errors?.discount?.message}>
-
-        
         <Input
-         disabled={isWorking}
+          disabled={isWorking}
           type="number"
           id="discount"
           defaultValue={0}
@@ -160,10 +170,12 @@ function CreateCabinForm(prop={}) {
             },
           })}
         />
-       
       </FormRow>
 
-      <FormRow label="Description for website" error={errors?.description?.message}>
+      <FormRow
+        label="Description for website"
+        error={errors?.description?.message}
+      >
         <Textarea
           disabled={isWorking}
           type="number"
@@ -173,27 +185,59 @@ function CreateCabinForm(prop={}) {
             required: "this field is required",
           })}
         />
-    
+
+
+
       </FormRow>
 
-      <StyledFormRow>
-        <Label htmlFor="image">Cabin photo</Label>
-        <FileInput  disabled={isWorking} id="image" accept="image/*"  {...register("image", {
-            required:isEditCabin?false: "this field is required",
-          })}/>
-      </StyledFormRow>
+      <FormRow label="Cabin photo" error={errors?.image?.message}>
+
+        <UploadImage
+         inputRef={inputRef} 
+         setUpdateImage={setUpdateImage}
+          >
+          <UploadImage.Image 
+          icon={<img src='/default-cabin.png'/>}
+          src={isEditCabin?editValues?.image:''}
+
+          />
+
+          <UploadImage.DescriptionImage></UploadImage.DescriptionImage>
+          <UploadImage.Drop
+            iconClick={<img src="./icon-click-1.png" alt="" />}
+            iconDrop={
+              <img className="drop" src="/icon-upload-drop.png" alt="" />
+            }
+          >
+            <FileInput
+              disabled={isWorking}
+              id="image"
+              accept="image/*"
+              {...register("image", {
+                
+                required: inputRef?.current?.files?.length==1? false : "this field is required",
+              })}
+              ref={inputRef}
+            />
+          </UploadImage.Drop>
+        </UploadImage>
+      </FormRow>
+      
 
       <StyledFormRow>
- 
-        <Button onClick={()=>onCloseModal?.()} variation="secondary" type="reset">
+        <Button
+          onClick={() => onCloseModal?.()}
+          variation="secondary"
+          type="reset"
+        >
           Cancel
         </Button>
         <Button disabled={isWorking}>
-          
-       
-          {isWorking?<SpinnerMini/>:
-        <span>{isEditCabin?'edit':'add'}</span>
-        }
+          {isWorking ? (
+            <SpinnerMini />
+          ) : (
+            <span>{isEditCabin ? "edit" : "add"}</span>
+          )}
         </Button>
       </StyledFormRow>
     </Form>

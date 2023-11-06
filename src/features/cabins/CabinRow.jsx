@@ -50,6 +50,7 @@ const CabinRow = (prop) => {
     description,
   } = prop;
 
+
   const { isLoading, mutate } = useFetchData(
     deleteCabin,
     "cabin Successfully deleted",
@@ -123,7 +124,7 @@ const CabinRow = (prop) => {
                   <ConfirmDelete
                     resourceName="cabins"
                     disabled={isLoading}
-                    onConfirm={() => mutate(cabinId)}
+                    onConfirm={() => mutate({cabinId,image})}
                   />
                 </Modal.Window>
        

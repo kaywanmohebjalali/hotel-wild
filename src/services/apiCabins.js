@@ -1,6 +1,17 @@
 import supabase from './supabase'
 import { supabaseUrl } from '../services/supabase'
 
+
+
+
+
+
+
+
+
+
+
+
 export async function getCabins() {
 
     const { data, error } = await supabase
@@ -15,18 +26,34 @@ export async function getCabins() {
 
 
 
-export async function deleteCabin(id) {
+export async function deleteCabin({ cabinId, image }) {
+
+
 
     try {
         const { data, error } = await supabase
             .from('cabins')
             .delete()
-            .eq('id', id)
+            .eq('id', cabinId)
 
-        if (error) {
-            throw new Error('cabin could not be delete')
+        if (error) throw new Error('cabin could not be delete')
+
+
+         let img =image? image.split('/').at(-1):''
+        if(img && img!='default-cabin.png'){
+
+            const { error: errorStorage } = await supabase
+            .storage
+            .from('cabin-images')
+            .remove([image.split('/').at(-1)])
+            
+            if (errorStorage) throw new Error('error delete cabin previous  image in database')
         }
+        
+        
+        
         return data
+
     } catch (error) {
         console.log('delete cabin : ', error.message);
         throw new Error('cabin could not be delete')
@@ -41,13 +68,13 @@ export async function deleteCabin(id) {
 
 
 
-export async function createOrEditCabin(newCabin, id) {
+export async function createOrEditCabin(newCabin, id,previousImage) {
 
-    const hasImagePath = typeof newCabin?.image == 'string'
-    
 
-    const imageName = `${Math.random()}-${newCabin.image.name}`.replace('/', '')
-    const imagePath = hasImagePath ? newCabin.image : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`
+    const hasImagePath = typeof newCabin?.image[0] == 'string'
+
+    const imageName = `${Math.random()}-${newCabin?.image[0]?.name}`.replace('/', '')
+    const imagePath = hasImagePath ? newCabin.image[0] : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`
 
     let query = supabase.from('cabins')
     // CREATE
@@ -78,9 +105,21 @@ export async function createOrEditCabin(newCabin, id) {
                 .from('cabins')
                 .delete()
                 .eq('id', data.id)
-         
+
             throw new Error('cabin image could not be uploaded and the cabin was not created')
         }
+    }
+
+    if (id && previousImage) {
+        let img =previousImage? previousImage.split('/').at(-1):''
+        if(img && img!='default-cabin.png'){
+        const { error: errorStorage } = await supabase
+        .storage
+        .from('cabin-images')
+        .remove([previousImage.split('/').at(-1)])
+        
+        if (errorStorage) throw new Error('error delete cabin previous  image in database')
+    }
     }
 
     return data
