@@ -49,6 +49,7 @@ function UpdateUserDataForm() {
       <FormRow label="Email address">
         <Input value={email} disabled />
       </FormRow>
+
       <FormRow label="Full name">
         <Input
           type="text"
@@ -58,9 +59,9 @@ function UpdateUserDataForm() {
           disabled={isUpdateUser}
         />
       </FormRow>
+
       <FormRow label="Avatar image">
-    
-        <UploadImage inputRef={inputRef} width='100%'  size='small'>
+        <UploadImage inputRef={inputRef} width='100%' minWidth='200px' size='small'>
           <UploadImage.Image  
           src={previousAvatar}
           icon={<img src="/icon-user-1.png" />}
@@ -83,6 +84,7 @@ function UpdateUserDataForm() {
           </UploadImage.Drop>
         </UploadImage>
       </FormRow>
+
       <FormRow>
         <Button
           onClick={handleCancel}
