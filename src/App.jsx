@@ -10,7 +10,8 @@ import { Toaster } from 'react-hot-toast'
 import ProtectedRoute from './ui/ProtectedRoute'
 import { DarkModeProvider } from './context/DarkModeContext'
 
-import {lazy, Suspense} from 'react'
+import CheckInternet from './ui/CheckInternet'
+import {lazy, Suspense, useEffect, useState} from 'react'
 import Logo from './ui/Logo'
 import styled from 'styled-components'
 
@@ -98,6 +99,13 @@ const queryClient =new QueryClient({
 })
 
 const App = () => {
+  const [online, setOnline]=useState(true)
+ 
+  useEffect(()=>{
+     setOnline(window.navigator.onLine)
+  },[])
+ 
+  if(!online)return <CheckInternet/>
   return (
     <DarkModeProvider>
 

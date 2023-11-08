@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom"
 import Header from "./Header"
 import Sidebar from "./Sidebar"
 import { styled } from "styled-components"
+import { useEffect, useState } from "react"
 
 const StyleAppLayout = styled.div`
   height: 100vh;
@@ -28,9 +29,34 @@ const Container=styled.div`
   gap: 3.2rem;
 
 `
-const AppLayout = () => {
 
-  return (
+const CheckScreen=styled.div`
+width: 100%;
+height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+font: 2rem bold;
+`
+const AppLayout = () => {
+const [widthWindow, setWidthWindow]=useState(1500)
+
+ useEffect(()=>{
+  function handleResize(){
+   
+    setWidthWindow(window.innerWidth)
+   
+  }
+   
+  handleResize()
+
+   window.addEventListener('resize',handleResize)
+ },[widthWindow])
+ if(widthWindow<1100)return<CheckScreen>Please increase the screen width</CheckScreen>
+  
+ 
+ 
+ return (
     <StyleAppLayout>
         <Header/>
         <Sidebar/>
